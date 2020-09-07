@@ -26,9 +26,15 @@ if __name__ == '__main__':
     X_0 = get_data(args.data_path)
     N = len(X_0)
     X_1 = np.cumsum(X_0)
+
     B = np.ones((N - 1, 2))
     for i in range(N - 1):
         B[i, 0] = -0.5 * (X_1[i] + X_1[i + 1])
-    print(X_0)
-    print(X_1)
-    print(B)
+    a, u = np.matmul(
+        np.matmul(np.linalg.inv(np.matmul(B.transpose(), B)), B.transpose()),
+        np.reshape(X_0[1:], N - 1)
+    )
+
+    K = np.arange(0, N, 1)
+    X_1_pred = (X_1[0] - u / a) * np.exp(-a * K) + u / a
+    X_0_pred = np.insert(np.diff(X_1_pred), 0, X_0[0])
