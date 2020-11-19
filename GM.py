@@ -5,12 +5,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def get_data(data_path):
+def read_data(data_path):
+    """
+    Read data from a file.
+
+    Parameters
+    ----------
+    data_path : str
+        Data path.
+
+    Returns
+    -------
+    out : np.ndarray
+        A one-dimensional array which is read from data_path.
+
+    """
     with open(data_path, "r", encoding="utf-8") as f:
         return np.array([float(line) for line in f.read().strip().split("\n")])
 
 
 def get_args():
+    """
+    Define arguments.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', type=str, default='',
                         help='Data path.')
@@ -22,18 +39,35 @@ def get_args():
 
 
 def GM_1_1(X_0, K, display=True):
+    """
+    Return the predictions through GM(1, 1).
+
+    Parameters
+    ----------
+    X_0 : np.ndarray
+        Raw data, a one-dimensional array.
+    K : int
+        number of predictions.
+    display : bool
+        Whether to display the results.
+
+    Returns
+    -------
+    X_0_pred[N:] : np.ndarray
+        predictions, a one-dimensional array.
+
+    """
     N = X_0.shape[0]
     X_1 = np.cumsum(X_0)
 
     B = np.ones((N - 1, 2))
     B[:, 0] = [-(X_1[i] + X_1[i + 1]) / 2 for i in range(N - 1)]
+    y = X_0[1:]
 
+    assert np.linalg.det(np.matmul(B.transpose(), B)) != 0
     a, u = np.matmul(
-        np.matmul(
-            np.linalg.inv(np.matmul(B.transpose(), B)),
-            B.transpose()
-        ),
-        X_0[1:]
+        np.matmul(np.linalg.inv(np.matmul(B.transpose(), B)), B.transpose()),
+        y
     )
 
     pred_range = np.arange(N + K)
@@ -53,6 +87,6 @@ def GM_1_1(X_0, K, display=True):
 
 if __name__ == '__main__':
     args = get_args()
-    X = get_data(args.data_path)
+    X = read_data(args.data_path)
     X_pred = GM_1_1(X, args.K, args.display)
     print(X_pred)
